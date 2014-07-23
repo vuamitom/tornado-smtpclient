@@ -13,8 +13,10 @@ def send_email():
     logger.debug("--SMTP Client--") 
     try:
         s = client.SMTPAsync('email-smtp.us-east-1.amazonaws.com', 587)
-        yield s.login("U", "P")
+        response = yield s.connect()
+        logger.debug(response)
         logger.debug("done connect")
+        yield s.starttls()
     except Exception as e: 
         logger.exception(e)
     finally: 
