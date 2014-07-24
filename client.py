@@ -135,6 +135,42 @@ class SMTPAsync(object):
 
         def encode_plain(user, password): 
             return encode_base64("\0%s\0%s" % (user, password), eol="")
+
+        AUTH_PLAIN = "PLAIN"
+        AUTH_CRAM_MD5 = "CRAM-MD5"
+        AUTH_LOGIN = "LOGIN"
+
+        yield self.ehlo_or_helo_if_needed()
+        if not self.has_extn('auth'):
+            raise SMTPError("SMTP Auth extension not supported by server ") 
+        authlist = self.esmtp_features['auth'].split()
+        preferred_auths = [AUTH_CRAM_MD5, AUTH_PLAIN, AUTH_LOGIN]
+        
+        authmethod = None
+        for method in preferred_auths:
+            if method in authlist:
+                authmethod = method
+                break
+
+        if authmethod == AUTH_CRAM_MD5: 
+            code, msg = yield self._command("AUTH", AUTH_CRAM_MD5)    
+            if code == 503:
+                #alr authenticated
+                return (code, msg) 
+            code, msg = yield self._command(encode_cram_md5(msg, username, password)) 
+        elif authmethod == AUTH_PLAIN: 
+            code, msg = yield self._command("AUTH", AUTH_PLAIN + " " + encode_plain(username, password))
+        elif authmethod == AUTH_LOGIN: 
+            code, msg = yield self._command("AUTH","%s %s" % (AUTH_LOGIN, encode_base64(user, eol="")))
+            if code != 334: 
+                raise SMTPAuthError() 
+            code, msg = yield self._command(encode_base64(password, eol=""))
+        elif authmethod is None: 
+            raise SMTPError()
+        if code not in (235, 503): 
+            raise SMTPAuthError()
+            
+        return (code,msg) 
        
     @gen.coroutine
     def ehlo_or_helo_if_needed(self): 
@@ -157,7 +193,13 @@ class SMTPAsync(object):
         if code == -1 and len (resp) == 0 : 
             self.close()
             raise ConnectionError("Server not connected")
-        return (code, resp)
+        if code != 250:
+            return (code, resp)
+        self.does_esmtp =1
+        #TODO: parse the response separately
+        raise NotImplementedError()
+        #resp = self.ehlo_resp.split('\n')
+
 
 
 
@@ -178,3 +220,5 @@ class ConnectionError(Exception):
     pass 
 class SMTPError(Exception):
     pass 
+class SMTPAuthError(Exception):
+    pass
