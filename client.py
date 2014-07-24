@@ -33,7 +33,7 @@ errors = {
 CRCF = b'\r\n'
 
 class SMTPAsync(object): 
-    def __init__(self, host = None, port = None):
+    def __init__(self, host = '', port = 0, local_hostname = None):
         self.host = host 
         self.port = port 
         self.stream = None
@@ -43,6 +43,21 @@ class SMTPAsync(object):
         self.done_esmtp = 0
         self.helo_resp = None 
         self.ehlo_resp = None
+        if local_hostname: 
+            self.local_hostname = local_hostname 
+        else:
+            fqdn = socket.getfqdn() 
+            if '.' in fqdn: 
+                logger.debug(fqdn)
+                print(fqdn)
+                self.local_hostname = bytes(fqdn, 'utf-8') 
+            else: 
+                addr = '127.0.0.1' 
+                try: 
+                    addr = socket.gethostbyname(socket.gethostname())
+                except socket.gaierror: 
+                    pass 
+                self.local_hostname = '[%s]' % addr
 
     def has_extn(self, f): 
         return True 
@@ -102,13 +117,24 @@ class SMTPAsync(object):
             if not _have_ssl: 
                 raise RuntimeError("No SSL support included in this Python ")
             self.sock = ssl.wrap_socket(self.sock, keyfile, certfile, do_handshake_on_connect= False) 
-            self.sock.do_handshake()
+            # set blocking = True. Otherwise, exception will be thrown. I don't know how to make it non-blocking here yet 
+            self.sock.do_handshake(True)
             self.file = SSLFakeFile(self.sock)
             self.helo_resp = None 
             self.ehlo_resp = None 
             self.esmtp_features = {}
             self.does_esmtp = 0 
         return (code, msg)
+
+    @gen.coroutine
+    def login(self, username, password):
+        def encode_cram_md5(challenge, username, password): 
+            challenge = base64.decodestring(challenge)
+            response = username + " " + hmac.MAC(password, challenge).hexdigest() 
+            return encode_base64(response, eol="")
+
+        def encode_plain(user, password): 
+            return encode_base64("\0%s\0%s" % (user, password), eol="")
        
     @gen.coroutine
     def ehlo_or_helo_if_needed(self): 
@@ -125,8 +151,8 @@ class SMTPAsync(object):
         raise NotImplementedError()
 
     @gen.coroutine
-    def ehlo(self):        
-        code, resp = yield self._command(b'ehlo', b'localhost') 
+    def ehlo(self, name=''):        
+        code, resp = yield self._command(b'ehlo',  name or self.local_hostname) 
         self.ehlo_resp = resp 
         if code == -1 and len (resp) == 0 : 
             self.close()
