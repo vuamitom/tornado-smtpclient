@@ -12,8 +12,8 @@ from tornado import gen
 def send_email():
     logger.debug("--SMTP Client--") 
     try:
-        s = client.SMTPAsync('email-smtp.us-east-1.amazonaws.com', 587)
-        response = yield s.connect()
+        s = client.SMTPAsync()
+        response = yield s.connect('email-smtp.us-east-1.amazonaws.com',587)
         logger.debug(response)
         logger.debug("done connect")
         yield s.starttls()

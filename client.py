@@ -7,24 +7,17 @@ import socket
 import logging 
 logger = logging.getLogger(__name__)
 from tornado import gen
+import smtplib
+import re
+import base64
+import hmac
+from base64 import b64encode as encode_base64
 
 try: 
     import ssl 
-except: 
+except ImportError:
     _have_ssl = False
 else:
-    class SSLFakeFile(object):
-        def __init__(self, sslobj):
-            self.sslobj = sslobj 
-        def readLine(self): 
-            str = ""
-            chr = None 
-            while chr != "\n":
-                chr = self.sslobj.read(1)
-                if not chr: break 
-                str += chr 
-            return str 
-             
     _have_ssl = True
 
 errors = {
@@ -32,24 +25,26 @@ errors = {
 }
 CRCF = b'\r\n'
 
-class SMTPAsync(object): 
-    def __init__(self, host = '', port = 0, local_hostname = None):
-        self.host = host 
-        self.port = port 
+class SMTPAsync(object):
+    file = None
+    helo_resp = None
+    ehlo_msg = b'ehlo'
+    ehlo_resp = None
+    does_esmtp = 0
+
+    def __init__(self, host = '', port = 0, local_hostname = None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+        self.default_port = smtplib.SMTP_PORT
         self.stream = None
+        self.timeout = timeout
         self.sock = None
-        self.esmtp_features = {} 
-        self.file = None
-        self.done_esmtp = 0
-        self.helo_resp = None 
-        self.ehlo_resp = None
+        self.esmtp_features = {}
+
+
         if local_hostname: 
             self.local_hostname = local_hostname 
         else:
             fqdn = socket.getfqdn() 
-            if '.' in fqdn: 
-                logger.debug(fqdn)
-                print(fqdn)
+            if '.' in fqdn:
                 self.local_hostname = bytes(fqdn, 'utf-8') 
             else: 
                 addr = '127.0.0.1' 
@@ -59,65 +54,94 @@ class SMTPAsync(object):
                     pass 
                 self.local_hostname = '[%s]' % addr
 
-    def has_extn(self, f): 
-        return True 
-            
+    def _get_stream(self, host, port, timeout):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        self.stream = iostream.IOStream(self.sock)
+        self.stream.connect((host, port))
+        return self.stream
+
+
+    def has_extn(self, opt):
+        return opt.lower() in self.esmtp_features
+
     @gen.coroutine
-    def _command(self, name, param = None): 
+    def doccmd(self, cmd, args = None):
+        self.putcmd(cmd, args)
+        (code, msg) = yield self.getreply()
+        return (code, msg)
+
+    @gen.coroutine
+    def putcmd(self, name, param = None):
         if not self.stream: 
-            raise StreamError("IOStream is not yet created")
+            raise SMTPAsyncException("IOStream is not yet created")
         if self.stream.closed():
-            raise StreamError("Stream is already closed")
+
+            raise SMTPAsyncException("Stream is already closed")
         if self.stream.writing(): 
             # we can handle this case better than just throwing out 
             # an error 
-            raise StreamError("Stream is occupied at the moment")
+            raise SMTPAsyncException("Stream is occupied at the moment")
 
         # check if we really need to yield here      
         request = b''.join([name,b' ', param, CRCF]) if param else b''.join([name, CRCF])  
-        self.stream.write(request)  
-        response = yield self.stream.read_until(CRCF)
+        yield self.stream.write(request)
 
-        # some commands such as ehlo returns a list of <code>-<subCommand>\r\n<code>-<subCommand> 
-        # before the final status code. Ignore them for now
-        while response[3] not in b' \r\n':
-            response = yield self.stream.read_until(CRCF)
-
-        code = int(response[0:3])
-        if not 200 <= code < 300: 
-            raise CommandError("Response code %s: %s" % (code, errors.get(code, response[3:])))
-        return (code, response[3:])
 
 
     @gen.coroutine
+    def getreply(self):
+
+        resp = []
+        while True:
+            try:
+                response = yield self.stream.read_until(CRCF)
+                logger.debug(response)
+            except socket.error:
+                raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
+            resp.append(response[4:])
+            code = response[0:3]
+            try:
+                code= int(code)
+            except ValueError:
+                code = -1
+                break
+
+            if response[3] in b' \r\n':
+                break
+        msg = b'\n'.join(resp)
+        return (code,msg)
+
+    @gen.coroutine
     def connect(self, host = None, port = None):
-        self.host = host if host else self.host 
-        self.prot = port if port else self.port 
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) 
-        self.stream = iostream.IOStream(self.sock)
-        # seem like I don't need to put 'yield' here 
-        # strange, I thought it should wait until connection established          
-        # and then read data from stream. Maybe the stream api is forcing a wait on read_until call 
-        self.stream.connect((self.host, self.port)) 
-        response = yield self.stream.read_until(CRCF)
-        code = int(response[0:3])
-        if not 200 <= code < 300: 
-            raise ConnectionError(response[3:])
-        return (code, response[3:]) 
+        if not port and (host.find(':') == host.rfind(':')):
+            i = host.rfind(':')
+            if i >= 0:
+                host, port = host[:i], host[i+1:]
+                try:
+                    port = int(port)
+                except ValueError:
+                    raise socket.error("nonnumeric port")
+
+        if not port: port = self.default_port
+        self.stream =  self._get_stream(host, port, self.timeout)
+        (code, msg) = yield self.getreply()
+        return (code, msg)
+
 
     @gen.coroutine
     def starttls(self, keyfile=None, certfile=None): 
         #TODO: check how to read the local computer name
         yield self.ehlo_or_helo_if_needed() 
         if not self.has_extn('starttls'): 
-            raise SMTPError('STARTTLS extension not supported ') 
+            raise smtplib.SMTPException('STARTTLS extension not supported ')
 
-        code, msg = yield self._command(b'STARTTLS')
+        code, msg = yield self.doccmd(b'STARTTLS')
         if code == 220: 
             if not _have_ssl: 
                 raise RuntimeError("No SSL support included in this Python ")
             self.sock = ssl.wrap_socket(self.sock, keyfile, certfile, do_handshake_on_connect= False) 
-            # set blocking = True. Otherwise, exception will be thrown. I don't know how to make it non-blocking here yet 
+            # set blocking = True. Otherwise, exception will be thrown. I don't know how to make it non-blocking here yet
+            # self.stream = IOStream(self.sock)
             self.sock.do_handshake(True)
             self.file = SSLFakeFile(self.sock)
             self.helo_resp = None 
@@ -142,7 +166,7 @@ class SMTPAsync(object):
 
         yield self.ehlo_or_helo_if_needed()
         if not self.has_extn('auth'):
-            raise SMTPError("SMTP Auth extension not supported by server ") 
+            raise smtplib.SMTPException("SMTP Auth extension not supported by server ")
         authlist = self.esmtp_features['auth'].split()
         preferred_auths = [AUTH_CRAM_MD5, AUTH_PLAIN, AUTH_LOGIN]
         
@@ -153,23 +177,24 @@ class SMTPAsync(object):
                 break
 
         if authmethod == AUTH_CRAM_MD5: 
-            code, msg = yield self._command("AUTH", AUTH_CRAM_MD5)    
+            code, msg = yield self.doccmd("AUTH", AUTH_CRAM_MD5)
             if code == 503:
                 #alr authenticated
                 return (code, msg) 
-            code, msg = yield self._command(encode_cram_md5(msg, username, password)) 
+            code, msg = yield self.doccmd(encode_cram_md5(msg, username, password))
         elif authmethod == AUTH_PLAIN: 
-            code, msg = yield self._command("AUTH", AUTH_PLAIN + " " + encode_plain(username, password))
+            code, msg = yield self.doccmd("AUTH", AUTH_PLAIN + " " + encode_plain(username, password))
         elif authmethod == AUTH_LOGIN: 
-            code, msg = yield self._command("AUTH","%s %s" % (AUTH_LOGIN, encode_base64(user, eol="")))
+            code, msg = yield self.doccmd("AUTH","%s %s" % (AUTH_LOGIN, encode_base64(username, eol="")))
             if code != 334: 
-                raise SMTPAuthError() 
-            code, msg = yield self._command(encode_base64(password, eol=""))
+                raise smtplib.SMTPAuthenticationError(code,msg)
+            code, msg = yield self.doccmd(encode_base64(password, eol=""))
+
         elif authmethod is None: 
-            raise SMTPError()
+            raise smtplib.SMTPException("No suitable authentication method found.")
         if code not in (235, 503): 
-            raise SMTPAuthError()
-            
+            raise smtplib.SMTPAuthenticationError(code, msg)
+
         return (code,msg) 
        
     @gen.coroutine
@@ -183,25 +208,56 @@ class SMTPAsync(object):
 
 
     @gen.coroutine
-    def helo(self):
-        raise NotImplementedError()
+    def helo(self, name = None):
+
+        self.putcmd("helo", name or self.local_hostname)
+        (code,msg)= yield self.getreply()
+        self.helo_resp=msg
+        return (code,msg)
+
+
 
     @gen.coroutine
-    def ehlo(self, name=''):        
-        code, resp = yield self._command(b'ehlo',  name or self.local_hostname) 
-        self.ehlo_resp = resp 
-        if code == -1 and len (resp) == 0 : 
+    def ehlo(self, name=''):
+        self.esmtp_features = {}
+        self.putcmd(self.ehlo_msg,  name or self.local_hostname)
+        (code, msg) = yield self.getreply()
+
+        self.ehlo_resp = msg
+        if code == -1 and len (msg) == 0 :
             self.close()
-            raise ConnectionError("Server not connected")
+            raise smtplib.SMTPServerDisconnected("Server not connected")
+
         if code != 250:
-            return (code, resp)
+            return (code, msg)
         self.does_esmtp =1
-        #TODO: parse the response separately
-        raise NotImplementedError()
-        #resp = self.ehlo_resp.split('\n')
 
+        #parse the ehlo response -ddm
+        resp=self.ehlo_resp.split(b'\n')
+        del resp[0]
+        for each in resp:
 
+            auth_match = smtplib.OLDSTYLE_AUTH.match(each)
+            if auth_match:
+                # This doesn't remove duplicates, but that's no problem
+                self.esmtp_features["auth"] = self.esmtp_features.get("auth", "") \
+                        + " " + auth_match.groups(0)[0]
+                continue
 
+            # RFC 1869 requires a space between ehlo keyword and parameters.
+            # It's actually stricter, in that only spaces are allowed between
+            # parameters, but were not going to check for that here.  Note
+            # that the space isn't present if there are no parameters.
+            m= re.match(r'(?P<feature>[A-Za-z0-9][A-Za-z0-9\-]*) ?',each)
+            if m:
+                feature=m.group("feature").lower()
+                params=m.string[m.end("feature"):].strip()
+                if feature == "auth":
+                    self.esmtp_features[feature] = self.esmtp_features.get(feature, "") \
+                            + " " + params
+                else:
+                    self.esmtp_features[feature]=params
+        return (code,msg)
 
     @gen.coroutine
     def login(self,username, password): 
@@ -209,16 +265,8 @@ class SMTPAsync(object):
             data = yield self.stream.read_until(b'\r\n')
             logger.debug(data)
 
-    def quit():
+    def quit(self):
         pass 
 
-class StreamError(Exception): 
-    pass  
-class CommandError(Exception): 
-    pass
-class ConnectionError(Exception):
-    pass 
-class SMTPError(Exception):
-    pass 
-class SMTPAuthError(Exception):
+class SMTPAsyncException(Exception):
     pass
