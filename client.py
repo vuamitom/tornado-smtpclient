@@ -143,7 +143,7 @@ class SMTPAsync(object):
             # set blocking = True. Otherwise, exception will be thrown. I don't know how to make it non-blocking here yet
             # self.stream = IOStream(self.sock)
             self.sock.do_handshake(True)
-            self.file = SSLFakeFile(self.sock)
+            #self.file = SSLFakeFile(self.sock)
             self.helo_resp = None 
             self.ehlo_resp = None 
             self.esmtp_features = {}
@@ -236,8 +236,8 @@ class SMTPAsync(object):
         resp=self.ehlo_resp.split(b'\n')
         del resp[0]
         for each in resp:
-
-            auth_match = smtplib.OLDSTYLE_AUTH.match(each)
+            val = each.decode()
+            auth_match = smtplib.OLDSTYLE_AUTH.match(val)
             if auth_match:
                 # This doesn't remove duplicates, but that's no problem
                 self.esmtp_features["auth"] = self.esmtp_features.get("auth", "") \
@@ -248,7 +248,7 @@ class SMTPAsync(object):
             # It's actually stricter, in that only spaces are allowed between
             # parameters, but were not going to check for that here.  Note
             # that the space isn't present if there are no parameters.
-            m= re.match(r'(?P<feature>[A-Za-z0-9][A-Za-z0-9\-]*) ?',each)
+            m= re.match(r'(?P<feature>[A-Za-z0-9][A-Za-z0-9\-]*) ?',val)
             if m:
                 feature=m.group("feature").lower()
                 params=m.string[m.end("feature"):].strip()
