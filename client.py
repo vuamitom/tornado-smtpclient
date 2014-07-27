@@ -11,7 +11,7 @@ import smtplib
 import re
 import base64
 import hmac
-from base64 import b64encode as encode_base64
+from email.base64mime import body_encode as encode_base64
 
 try: 
     import ssl 
@@ -36,9 +36,10 @@ class SMTPAsync(object):
         self.default_port = smtplib.SMTP_PORT
         self.stream = None
         self.timeout = timeout
-        self.sock = None
+        #self.sock = None
         self.esmtp_features = {}
-
+        self.host = host
+        self.port = port
 
         if local_hostname: 
             self.local_hostname = local_hostname 
@@ -55,8 +56,8 @@ class SMTPAsync(object):
                 self.local_hostname = '[%s]' % addr
 
     def _get_stream(self, host, port, timeout):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        self.stream = iostream.IOStream(self.sock)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        self.stream = iostream.IOStream(sock)
         self.stream.connect((host, port))
         return self.stream
 
@@ -65,7 +66,7 @@ class SMTPAsync(object):
         return opt.lower() in self.esmtp_features
 
     @gen.coroutine
-    def doccmd(self, cmd, args = None):
+    def docmd(self, cmd, args = None):
         self.putcmd(cmd, args)
         (code, msg) = yield self.getreply()
         return (code, msg)
@@ -96,7 +97,8 @@ class SMTPAsync(object):
             try:
                 response = yield self.stream.read_until(CRCF)
                 logger.debug(response)
-            except socket.error:
+            except socket.error as e:
+                logger.exception(e)
                 raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
             resp.append(response[4:])
             code = response[0:3]
@@ -124,26 +126,26 @@ class SMTPAsync(object):
 
         if not port: port = self.default_port
         self.stream =  self._get_stream(host, port, self.timeout)
+        self.host = host
+        self.port = port
         (code, msg) = yield self.getreply()
         return (code, msg)
 
 
     @gen.coroutine
-    def starttls(self, keyfile=None, certfile=None): 
+    def starttls(self):
         #TODO: check how to read the local computer name
         yield self.ehlo_or_helo_if_needed() 
         if not self.has_extn('starttls'): 
             raise smtplib.SMTPException('STARTTLS extension not supported ')
 
-        code, msg = yield self.doccmd(b'STARTTLS')
+        code, msg = yield self.docmd(b'STARTTLS')
         if code == 220: 
             if not _have_ssl: 
                 raise RuntimeError("No SSL support included in this Python ")
-            self.sock = ssl.wrap_socket(self.sock, keyfile, certfile, do_handshake_on_connect= False) 
-            # set blocking = True. Otherwise, exception will be thrown. I don't know how to make it non-blocking here yet
-            # self.stream = IOStream(self.sock)
-            self.sock.do_handshake(True)
-            #self.file = SSLFakeFile(self.sock)
+
+            server_hostname = self.host if ssl.HAS_SNI else None
+            self.stream = yield self.stream.start_tls(False, server_hostname = server_hostname)
             self.helo_resp = None 
             self.ehlo_resp = None 
             self.esmtp_features = {}
@@ -153,12 +155,12 @@ class SMTPAsync(object):
     @gen.coroutine
     def login(self, username, password):
         def encode_cram_md5(challenge, username, password): 
-            challenge = base64.decodestring(challenge)
-            response = username + " " + hmac.MAC(password, challenge).hexdigest() 
-            return encode_base64(response, eol="")
+            challenge = base64.decodebytes(challenge)
+            response = username + " " + hmac.HMAC(password.encode('ascii'), challenge, 'md5').hexdigest()
+            return encode_base64(response.encode('ascii'), eol="")
 
         def encode_plain(user, password): 
-            return encode_base64("\0%s\0%s" % (user, password), eol="")
+            return encode_base64(("\0%s\0%s" % (user, password)).encode('ascii'), eol="")
 
         AUTH_PLAIN = "PLAIN"
         AUTH_CRAM_MD5 = "CRAM-MD5"
@@ -167,35 +169,39 @@ class SMTPAsync(object):
         yield self.ehlo_or_helo_if_needed()
         if not self.has_extn('auth'):
             raise smtplib.SMTPException("SMTP Auth extension not supported by server ")
-        authlist = self.esmtp_features['auth'].split()
+
+        advertised_authlist = self.esmtp_features["auth"].split()
+
         preferred_auths = [AUTH_CRAM_MD5, AUTH_PLAIN, AUTH_LOGIN]
-        
-        authmethod = None
-        for method in preferred_auths:
-            if method in authlist:
-                authmethod = method
-                break
 
-        if authmethod == AUTH_CRAM_MD5: 
-            code, msg = yield self.doccmd("AUTH", AUTH_CRAM_MD5)
-            if code == 503:
-                #alr authenticated
-                return (code, msg) 
-            code, msg = yield self.doccmd(encode_cram_md5(msg, username, password))
-        elif authmethod == AUTH_PLAIN: 
-            code, msg = yield self.doccmd("AUTH", AUTH_PLAIN + " " + encode_plain(username, password))
-        elif authmethod == AUTH_LOGIN: 
-            code, msg = yield self.doccmd("AUTH","%s %s" % (AUTH_LOGIN, encode_base64(username, eol="")))
-            if code != 334: 
-                raise smtplib.SMTPAuthenticationError(code,msg)
-            code, msg = yield self.doccmd(encode_base64(password, eol=""))
-
-        elif authmethod is None: 
+        authlist = [auth for auth in preferred_auths if auth in advertised_authlist]
+        if not authlist:
             raise smtplib.SMTPException("No suitable authentication method found.")
-        if code not in (235, 503): 
-            raise smtplib.SMTPAuthenticationError(code, msg)
 
-        return (code,msg) 
+        # Some servers advertise authentication methods they don't really
+        # support, so if authentication fails, we continue until we've tried
+        # all methods.
+        for authmethod in authlist:
+            if authmethod == AUTH_CRAM_MD5:
+                (code, resp) = yield self.docmd("AUTH", AUTH_CRAM_MD5)
+                if code == 334:
+                    (code, resp) =yield self.docmd(encode_cram_md5(resp, username, password))
+            elif authmethod == AUTH_PLAIN:
+                (code, resp) =yield self.docmd("AUTH",
+                    AUTH_PLAIN + " " + encode_plain(username, password))
+            elif authmethod == AUTH_LOGIN:
+                (code, resp) = yield self.docmd("AUTH",
+                    "%s %s" % (AUTH_LOGIN, encode_base64(username.encode('ascii'), eol='')))
+                if code == 334:
+                    (code, resp) = yield self.docmd(encode_base64(password.encode('ascii'), eol=''))
+
+            # 235 == 'Authentication successful'
+            # 503 == 'Error: already authenticated'
+            if code in (235, 503):
+                return (code, resp)
+
+        # We could not login sucessfully. Return result of last attempt.
+        raise smtplib.SMTPAuthenticationError(code, resp)
        
     @gen.coroutine
     def ehlo_or_helo_if_needed(self): 
@@ -259,11 +265,6 @@ class SMTPAsync(object):
                     self.esmtp_features[feature]=params
         return (code,msg)
 
-    @gen.coroutine
-    def login(self,username, password): 
-            yield self.stream.connect((self.host, self.port))
-            data = yield self.stream.read_until(b'\r\n')
-            logger.debug(data)
 
     def quit(self):
         pass 
