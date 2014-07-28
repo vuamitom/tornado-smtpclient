@@ -67,7 +67,7 @@ class SMTPAsync(object):
 
     @gen.coroutine
     def docmd(self, cmd, args = None):
-        self.putcmd(cmd, args)
+        yield self.putcmd(cmd, args)
         (code, msg) = yield self.getreply()
         return (code, msg)
 
@@ -83,8 +83,10 @@ class SMTPAsync(object):
             # an error 
             raise SMTPAsyncException("Stream is occupied at the moment")
 
-        # check if we really need to yield here      
-        request = b''.join([name,b' ', param, CRCF]) if param else b''.join([name, CRCF])  
+        # check if we really need to yield here
+
+        request = b''.join([name,b' ', param, CRCF]) if param else b''.join([name, CRCF])
+
         yield self.stream.write(request)
 
 
@@ -95,8 +97,9 @@ class SMTPAsync(object):
         resp = []
         while True:
             try:
+
                 response = yield self.stream.read_until(CRCF)
-                logger.debug(response)
+
             except socket.error as e:
                 logger.exception(e)
                 raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
@@ -110,6 +113,8 @@ class SMTPAsync(object):
 
             if response[3] in b' \r\n':
                 break
+
+
         msg = b'\n'.join(resp)
         return (code,msg)
 
@@ -183,15 +188,15 @@ class SMTPAsync(object):
         # all methods.
         for authmethod in authlist:
             if authmethod == AUTH_CRAM_MD5:
-                (code, resp) = yield self.docmd("AUTH", AUTH_CRAM_MD5)
+                (code, resp) = yield self.docmd(b'AUTH', AUTH_CRAM_MD5)
                 if code == 334:
                     (code, resp) =yield self.docmd(encode_cram_md5(resp, username, password))
             elif authmethod == AUTH_PLAIN:
-                (code, resp) =yield self.docmd("AUTH",
-                    AUTH_PLAIN + " " + encode_plain(username, password))
+                (code, resp) =yield self.docmd(b'AUTH',
+                 (AUTH_PLAIN + " " + encode_plain(username, password)).encode('ascii'))
             elif authmethod == AUTH_LOGIN:
-                (code, resp) = yield self.docmd("AUTH",
-                    "%s %s" % (AUTH_LOGIN, encode_base64(username.encode('ascii'), eol='')))
+                (code, resp) = yield self.docmd(b'AUTH',
+                ("%s %s" % (AUTH_LOGIN, encode_base64(username.encode('ascii'), eol=''))).encode('ascii'))
                 if code == 334:
                     (code, resp) = yield self.docmd(encode_base64(password.encode('ascii'), eol=''))
 

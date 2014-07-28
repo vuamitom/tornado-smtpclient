@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="62249b0d-a2f9-41b6-a371-415f095767b0" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/blocking.py" afterPath="$PROJECT_DIR$/blocking.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/client.py" afterPath="$PROJECT_DIR$/client.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example.py" afterPath="$PROJECT_DIR$/example.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="tornado-smtp.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -29,11 +29,9 @@
             <file leaf-file-name="smtplib.py" pinned="false" current="false" current-in-tab="true">
               <entry file="file:///usr/local/Cellar/python3/3.4.1/Frameworks/Python.framework/Versions/3.4/lib/python3.4/smtplib.py">
                 <provider selected="true" editor-type-id="text-editor">
-                  <state vertical-scroll-proportion="0.55114824" vertical-offset="10131" max-vertical-offset="15000">
-                    <caret line="693" column="33" selection-start-line="693" selection-start-column="33" selection-end-line="693" selection-end-column="33" />
-                    <folding>
-                      <element signature="e#1343#1356#0" expanded="true" />
-                    </folding>
+                  <state vertical-scroll-proportion="0.0" vertical-offset="10305" max-vertical-offset="14850">
+                    <caret line="697" column="28" selection-start-line="697" selection-start-column="28" selection-end-line="697" selection-end-column="28" />
+                    <folding />
                   </state>
                 </provider>
               </entry>
@@ -49,11 +47,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="example.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="example.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/example.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4488189" vertical-offset="114" max-vertical-offset="555">
-              <caret line="19" column="39" selection-start-line="19" selection-start-column="39" selection-end-line="19" selection-end-column="39" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="570">
+              <caret line="19" column="58" selection-start-line="19" selection-start-column="38" selection-end-line="19" selection-end-column="58" />
               <folding />
             </state>
           </provider>
@@ -62,21 +60,19 @@
       <file leaf-file-name="base64mime.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file:///usr/local/Cellar/python3/3.4.1/Frameworks/Python.framework/Versions/3.4/lib/python3.4/email/base64mime.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1860">
+            <state vertical-scroll-proportion="0.0" vertical-offset="150" max-vertical-offset="1875">
               <caret line="10" column="30" selection-start-line="10" selection-start-column="30" selection-end-line="10" selection-end-column="30" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="client.py" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="client.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/client.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-4.3846154" vertical-offset="2661" max-vertical-offset="4185">
-              <caret line="185" column="45" selection-start-line="185" selection-start-column="42" selection-end-line="185" selection-end-column="45" />
-              <folding>
-                <element signature="e#88#116#0" expanded="true" />
-              </folding>
+            <state vertical-scroll-proportion="0.37692308" vertical-offset="858" max-vertical-offset="4230">
+              <caret line="69" column="8" selection-start-line="69" selection-start-column="8" selection-end-line="69" selection-end-column="8" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -84,8 +80,8 @@
       <file leaf-file-name="iostream.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$USER_HOME$/.envs/ecatalog/lib/python3.4/site-packages/tornado/iostream.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="15503" max-vertical-offset="20820">
-              <caret line="1018" column="35" selection-start-line="1018" selection-start-column="24" selection-end-line="1018" selection-end-column="35" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="11760" max-vertical-offset="20820">
+              <caret line="867" column="14" selection-start-line="867" selection-start-column="14" selection-end-line="867" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -94,7 +90,7 @@
       <file leaf-file-name="ssl.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file:///usr/local/Cellar/python3/3.4.1/Frameworks/Python.framework/Versions/3.4/lib/python3.4/ssl.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="12628" max-vertical-offset="13980">
+            <state vertical-scroll-proportion="0.0" vertical-offset="13140" max-vertical-offset="14265">
               <caret line="876" column="15" selection-start-line="876" selection-start-column="15" selection-end-line="876" selection-end-column="15" />
               <folding />
             </state>
@@ -104,7 +100,7 @@
       <file leaf-file-name="blocking.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/blocking.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="391" max-vertical-offset="855">
+            <state vertical-scroll-proportion="0.0" vertical-offset="144" max-vertical-offset="855">
               <caret line="45" column="77" selection-start-line="45" selection-start-column="33" selection-end-line="45" selection-end-column="77" />
               <folding />
             </state>
@@ -125,16 +121,15 @@
     <option name="changedFiles">
       <list>
         <option value="$PROJECT_DIR$/blocking.py" />
-        <option value="$PROJECT_DIR$/client.py" />
         <option value="$PROJECT_DIR$/example.py" />
+        <option value="$PROJECT_DIR$/client.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="64" />
-    <option name="y" value="28" />
-    <option name="width" value="1102" />
-    <option name="height" value="711" />
+    <option name="y" value="22" />
+    <option name="width" value="1237" />
+    <option name="height" value="778" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -364,18 +359,18 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="64" y="28" width="1102" height="711" extended-state="0" />
+    <frame x="0" y="22" width="1237" height="778" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28039926" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2069523" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.36292836" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.41043723" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -410,6 +405,54 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/example.py">
       <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="114" max-vertical-offset="555">
+          <caret line="18" column="26" selection-start-line="18" selection-start-column="26" selection-end-line="18" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/Cellar/python3/3.4.1/Frameworks/Python.framework/Versions/3.4/lib/python3.4/email/base64mime.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="150" max-vertical-offset="1875">
+          <caret line="10" column="30" selection-start-line="10" selection-start-column="30" selection-end-line="10" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="2661" max-vertical-offset="4185">
+          <caret line="185" column="45" selection-start-line="185" selection-start-column="42" selection-end-line="185" selection-end-column="45" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.envs/ecatalog/lib/python3.4/site-packages/tornado/iostream.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="12015" max-vertical-offset="20820">
+          <caret line="1071" column="8" selection-start-line="1071" selection-start-column="8" selection-end-line="1079" selection-end-column="57" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/Cellar/python3/3.4.1/Frameworks/Python.framework/Versions/3.4/lib/python3.4/ssl.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="13140" max-vertical-offset="14265">
+          <caret line="876" column="15" selection-start-line="876" selection-start-column="15" selection-end-line="876" selection-end-column="15" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/blocking.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="675" max-vertical-offset="885">
+          <caret line="45" column="77" selection-start-line="45" selection-start-column="33" selection-end-line="45" selection-end-column="77" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example.py">
+      <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="240" max-vertical-offset="540">
           <caret line="16" column="29" selection-start-line="16" selection-start-column="29" selection-end-line="16" selection-end-column="29" />
           <folding />
@@ -440,16 +483,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/local/Cellar/python3/3.4.1/Frameworks/Python.framework/Versions/3.4/lib/python3.4/smtplib.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.55114824" vertical-offset="10131" max-vertical-offset="15000">
-          <caret line="693" column="33" selection-start-line="693" selection-start-column="33" selection-end-line="693" selection-end-column="33" />
-          <folding>
-            <element signature="e#1343#1356#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/local/Cellar/python3/3.4.1/Frameworks/Python.framework/Versions/3.4/lib/python3.4/ssl.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="12613" max-vertical-offset="13980">
@@ -458,27 +491,25 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.envs/ecatalog/lib/python3.4/site-packages/tornado/iostream.py">
+    <entry file="file:///usr/local/Cellar/python3/3.4.1/Frameworks/Python.framework/Versions/3.4/lib/python3.4/smtplib.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="15458" max-vertical-offset="20820">
-          <caret line="1018" column="35" selection-start-line="1018" selection-start-column="24" selection-end-line="1018" selection-end-column="35" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="10305" max-vertical-offset="14850">
+          <caret line="697" column="28" selection-start-line="697" selection-start-column="28" selection-end-line="697" selection-end-column="28" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/client.py">
+    <entry file="file://$USER_HOME$/.envs/ecatalog/lib/python3.4/site-packages/tornado/iostream.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-4.3846154" vertical-offset="2661" max-vertical-offset="4185">
-          <caret line="185" column="45" selection-start-line="185" selection-start-column="42" selection-end-line="185" selection-end-column="45" />
-          <folding>
-            <element signature="e#88#116#0" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.0" vertical-offset="11760" max-vertical-offset="20820">
+          <caret line="867" column="14" selection-start-line="867" selection-start-column="14" selection-end-line="867" selection-end-column="14" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/blocking.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="391" max-vertical-offset="855">
+        <state vertical-scroll-proportion="0.0" vertical-offset="144" max-vertical-offset="855">
           <caret line="45" column="77" selection-start-line="45" selection-start-column="33" selection-end-line="45" selection-end-column="77" />
           <folding />
         </state>
@@ -486,8 +517,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/example.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4488189" vertical-offset="114" max-vertical-offset="555">
-          <caret line="19" column="39" selection-start-line="19" selection-start-column="39" selection-end-line="19" selection-end-column="39" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="570">
+          <caret line="19" column="58" selection-start-line="19" selection-start-column="38" selection-end-line="19" selection-end-column="58" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.37692308" vertical-offset="858" max-vertical-offset="4230">
+          <caret line="69" column="8" selection-start-line="69" selection-start-column="8" selection-end-line="69" selection-end-column="8" />
           <folding />
         </state>
       </provider>
