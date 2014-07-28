@@ -5,7 +5,14 @@ Non-blocking smtp client to work with tornado web framework 4.0 and above
 
 This library is a port of Python smtplib to tornado non-blocking IOstream implementation. 
 
-( The below example was taken and modified from Python docs' example )
+Installation
+
+```
+pip install tornado-smtpclient
+```
+
+
+Usage: ( The below example was taken and modified from Python docs' example )
 
 ```python 
 #!/usr/bin/env python3
@@ -19,7 +26,7 @@ from email.mime.text import MIMEText
 s = SMTPAsync()
 yield s.connect('your.email.host',587)
 yield s.starttls() 
-yield s.login('username', 'password') 
+yield s.login('username', 'password')
 
 # me == my email address
 # you == recipient's email address
