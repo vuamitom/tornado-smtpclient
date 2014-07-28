@@ -23,7 +23,7 @@ else:
 errors = {
     501 : 'Syntax error in parameters or arguments'
 }
-CRCF = b'\r\n'
+CRLF = b'\r\n'
 
 class SMTPAsync(object):
     file = None
@@ -73,23 +73,24 @@ class SMTPAsync(object):
 
     @gen.coroutine
     def putcmd(self, name, param = None):
-        if not self.stream: 
-            raise SMTPAsyncException("IOStream is not yet created")
-        if self.stream.closed():
-
-            raise SMTPAsyncException("Stream is already closed")
-        if self.stream.writing(): 
-            # we can handle this case better than just throwing out 
-            # an error 
-            raise SMTPAsyncException("Stream is occupied at the moment")
 
         # check if we really need to yield here
-
-        request = b''.join([name,b' ', param, CRCF]) if param else b''.join([name, CRCF])
-
-        yield self.stream.write(request)
+        request = b''.join([name,b' ', param, CRLF]) if param else b''.join([name, CRLF])
+        yield self.send(request)
 
 
+
+    @gen.coroutine
+    def send(self, req):
+        if not self.stream:
+            raise SMTPAsyncException("IOStream is not yet created")
+        if self.stream.closed():
+            raise SMTPAsyncException("Stream is already closed")
+        if self.stream.writing():
+            # we can handle this case better than just throwing out
+            # an error
+            raise SMTPAsyncException("Stream is occupied at the moment")
+        yield self.stream.write(req)
 
     @gen.coroutine
     def getreply(self):
@@ -98,7 +99,7 @@ class SMTPAsync(object):
         while True:
             try:
 
-                response = yield self.stream.read_until(CRCF)
+                response = yield self.stream.read_until(CRLF)
 
             except socket.error as e:
                 logger.exception(e)
@@ -190,7 +191,7 @@ class SMTPAsync(object):
             if authmethod == AUTH_CRAM_MD5:
                 (code, resp) = yield self.docmd(b'AUTH', AUTH_CRAM_MD5)
                 if code == 334:
-                    (code, resp) =yield self.docmd(encode_cram_md5(resp, username, password))
+                    (code, resp) =yield self.docmd(encode_cram_md5(resp, username, password).encode('ascii'))
             elif authmethod == AUTH_PLAIN:
                 (code, resp) =yield self.docmd(b'AUTH',
                  (AUTH_PLAIN + " " + encode_plain(username, password)).encode('ascii'))
@@ -198,7 +199,7 @@ class SMTPAsync(object):
                 (code, resp) = yield self.docmd(b'AUTH',
                 ("%s %s" % (AUTH_LOGIN, encode_base64(username.encode('ascii'), eol=''))).encode('ascii'))
                 if code == 334:
-                    (code, resp) = yield self.docmd(encode_base64(password.encode('ascii'), eol=''))
+                    (code, resp) = yield self.docmd(encode_base64(password.encode('ascii'), eol='').encode('ascii'))
 
             # 235 == 'Authentication successful'
             # 503 == 'Error: already authenticated'
@@ -271,8 +272,114 @@ class SMTPAsync(object):
         return (code,msg)
 
 
+    @gen.coroutine
+    def mail(self, sender, options=[]):
+        optionlist = ''
+        if options and self.does_esmtp:
+            optionlist = ' ' + ' '.join(options)
+        (code, msg) = yield self.docmd(b'mail', ('FROM:%s%s' % (smtplib.quoteaddr(sender), optionlist)).encode('ascii'))
+        return (code, msg)
+
+    @gen.coroutine
+    def rset(self):
+        """SMTP 'rset' command -- resets session."""
+        (code, msg) = yield self.docmd(b"rset")
+        return (code, msg)
+
+    @gen.coroutine
+    def _rset(self):
+        """Internal 'rset' command which ignores any SMTPServerDisconnected error.
+        """
+        try:
+            yield self.rset()
+        except smtplib.SMTPServerDisconnected:
+            pass
+
+    @gen.coroutine
+    def rcpt(self, recip, options=[]):
+        """SMTP 'rcpt' command -- indicates 1 recipient for this mail."""
+        optionlist = ''
+        if options and self.does_esmtp:
+            optionlist = ' ' + ' '.join(options)
+        code, msg = yield self.docmd(b"rcpt", ("TO:%s%s" % (smtplib.quoteaddr(recip), optionlist)).encode('ascii'))
+        return (code, msg)
+
+    @gen.coroutine
+    def data(self, msg):
+        """SMTP 'DATA' command -- sends message data to server. """
+
+        (code, repl) = yield self.docmd(b"data")
+
+        if code != 354:
+            raise smtplib.SMTPDataError(code, repl)
+        else:
+            if isinstance(msg, str):
+                msg = smtplib._fix_eols(msg).encode('ascii')
+            q = smtplib._quote_periods(msg)
+            if q[-2:] != CRLF:
+                q = q + CRLF
+            q = q + b"." + CRLF
+            #self.send(q)
+            yield self.send(q)
+            (code, msg) = yield self.getreply()
+            return (code, msg)
+
+    @gen.coroutine
+    def sendmail(self, from_addr, to_addrs, msg, mail_options=[],
+                 rcpt_options=[]):
+
+        yield self.ehlo_or_helo_if_needed()
+        esmtp_opts = []
+        if isinstance(msg, str):
+            msg = smtplib._fix_eols(msg).encode('ascii')
+        if self.does_esmtp:
+
+            if self.has_extn('size'):
+                esmtp_opts.append("size=%d" % len(msg))
+            for option in mail_options:
+                esmtp_opts.append(option)
+
+        (code, resp) = yield self.mail(from_addr, esmtp_opts)
+        if code != 250:
+            if code == 421:
+                self.close()
+            else:
+                yield self._rset()
+            raise smtplib.SMTPSenderRefused(code, resp, from_addr)
+        senderrs = {}
+        if isinstance(to_addrs, str):
+            to_addrs = [to_addrs]
+        for each in to_addrs:
+            (code, resp) = yield self.rcpt(each, rcpt_options)
+            if (code != 250) and (code != 251):
+                senderrs[each] = (code, resp)
+            if code == 421:
+                self.close()
+                raise smtplib.SMTPRecipientsRefused(senderrs)
+        if len(senderrs) == len(to_addrs):
+            # the server refused all our recipients
+            yield self._rset()
+            raise smtplib.SMTPRecipientsRefused(senderrs)
+        (code, resp) =  yield self.data(msg)
+        if code != 250:
+            if code == 421:
+                self.close()
+            else:
+                yield self._rset()
+            raise smtplib.SMTPDataError(code, resp)
+        #if we got here then somebody got our mail
+        return senderrs
+
+
+    @gen.coroutine
     def quit(self):
-        pass 
+        yield self.docmd(b'quit')
+        self.close()
+
+    def close(self):
+        self.stream.close()
+        self.stream = None
+
 
 class SMTPAsyncException(Exception):
     pass
