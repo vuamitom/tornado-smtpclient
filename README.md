@@ -1,11 +1,11 @@
 tornado-smtpclient
 ===================
 
-Non-blocking smtp client to work with tornado 4.0 and above 
+Non-blocking smtp client to work with tornado web framework 4.0 and above
 
 This library is a port of Python smtplib to tornado non-blocking IOstream implementation. 
 
-( The below example was taken and modified from Python docs' example ) 
+( The below example was taken and modified from Python docs' example )
 
 ```python 
 #!/usr/bin/env python3
