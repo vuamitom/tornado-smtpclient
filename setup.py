@@ -1,7 +1,7 @@
 from distutils.core import setup
 from os import path
 here = path.abspath(path.dirname(__file__))
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.txt'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
@@ -10,7 +10,7 @@ setup(
     packages=['tornado', 'tornado.smtp'],
     url='https://github.com/vuamitom/tornado-smtpclient',
     license='',
-    author='tamvu',
+    author='Tam Vu',
     keywords = ["tornado", "smtp", "email", "client", "non blocking", "async"],
     author_email='vumhtam@gmail.com',
     description='A non-blocking smtp client to work with tornado-based application',
