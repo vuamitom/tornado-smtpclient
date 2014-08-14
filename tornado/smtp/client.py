@@ -53,7 +53,7 @@ class SMTPAsync(object):
                     addr = socket.gethostbyname(socket.gethostname())
                 except socket.gaierror: 
                     pass 
-                self.local_hostname = '[%s]' % addr
+                self.local_hostname = bytes('[%s]' % addr, 'utf-8')
 
     def _get_stream(self, host, port, timeout):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
@@ -232,7 +232,7 @@ class SMTPAsync(object):
     @gen.coroutine
     def ehlo(self, name=''):
         self.esmtp_features = {}
-        self.putcmd(self.ehlo_msg,  name or self.local_hostname)
+        yield self.putcmd(self.ehlo_msg,  name or self.local_hostname)
         (code, msg) = yield self.getreply()
 
         self.ehlo_resp = msg
