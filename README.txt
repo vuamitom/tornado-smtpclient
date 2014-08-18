@@ -6,13 +6,13 @@ The below example was taken and modified from Python docs' example::
 
     #!/usr/bin/env python3
 
-    from tornado_smtpclient import SMTPAsync
+    from tornado_smtpclient import client 
 
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
 
     # create SMTP client
-    s = SMTPAsync()
+    s = client.SMTPAsync()
     yield s.connect('your.email.host',587)
     yield s.starttls()
     yield s.login('username', 'password')

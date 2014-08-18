@@ -1,7 +1,6 @@
 """
 Port the standard smtplib for use with tornado non-blocking application model 
 """
-
 from tornado import iostream 
 import socket
 import logging 
