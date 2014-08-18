@@ -17,7 +17,7 @@ Usage: ( The below example was taken and modified from Python docs' example )
 ```python 
 #!/usr/bin/env python3
 
-from tornado.smtp.client import SMTPAsync
+from tornado_smtpclient import SMTPAsync
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText

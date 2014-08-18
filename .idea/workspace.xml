@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="62249b0d-a2f9-41b6-a371-415f095767b0" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example.py" afterPath="$PROJECT_DIR$/example.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="tornado-smtp.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -142,8 +141,8 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-21" />
-    <option name="y" value="63" />
+    <option name="x" value="78" />
+    <option name="y" value="41" />
     <option name="width" value="1234" />
     <option name="height" value="778" />
   </component>
@@ -407,7 +406,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-21" y="63" width="1234" height="778" extended-state="0" />
+    <frame x="78" y="41" width="1234" height="778" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
