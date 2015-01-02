@@ -9,7 +9,7 @@ setup(
     version='0.1.4',
     packages=['tornado_smtpclient'],
     url='https://github.com/vuamitom/tornado-smtpclient',
-    license='',
+    license='MIT',
     author='Tam Vu',
     keywords = ["tornado", "smtp", "email", "client", "non blocking", "async"],
     author_email='vumhtam@gmail.com',
