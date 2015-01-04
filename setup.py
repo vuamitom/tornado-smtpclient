@@ -6,7 +6,7 @@ with open(path.join(here, 'README.txt'),'r') as f:
 
 setup(
     name='tornado-smtpclient',
-    version='0.1.4',
+    version='0.1.5',
     packages=['tornado_smtpclient'],
     url='https://github.com/vuamitom/tornado-smtpclient',
     license='MIT',
